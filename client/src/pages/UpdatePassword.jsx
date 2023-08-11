@@ -1,4 +1,4 @@
-import React, {useState}  from 'react'
+import React, {useState, useEffect}  from 'react'
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -11,13 +11,11 @@ import { Paper, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import {  useNavigate  } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 
-const Login = () => {
+const UpdatePassword = () => {
   const navigate  = useNavigate();
 
-
-
   const [user, setUser] = useState({
-    userId:'', password:'' 
+    currentpassword:'', newpassword:'' 
    });
 
    let name,  value;
@@ -30,36 +28,40 @@ const Login = () => {
     setUser({...user, [name]:value});
    }
    
-   const PostData = async (e) => {
+   const updateData = async (e) => {
     e.preventDefault();
 
-    const { userId, password} = user;
-    
-    const res = await fetch('http://localhost:3000/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        userId, password
-      }),
-      credentials: "include"
-
-    });
-
-    const data = await res.json();
-
-
-
-    if (res.status === 400 || !data ) {
-      window.alert("Invalid Credentials");
-      console.log("Invalid Credentials");
-    } else{
-
-      window.alert("login successfull");
-        console.log("login done");
-        navigate('/')
-    }
+    const { currentpassword, newpassword} = user;
+    const token = localStorage.getItem('jwtoken');
+    try {
+         // Get the stored token
+        const response = await fetch('http://localhost:3000/updatepassword', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            // Include the JWT token in the request headers
+            Authorization: `${token}`,
+          },
+          body: JSON.stringify({
+            currentpassword,
+            newpassword,
+          }),
+          credentials: "include"
+        });
+  
+        const data = await response.json();
+        console.log(data.message);
+        navigate('/');
+      } catch (error) {
+        console.error('An error occurred:', error);
+      }
    
    }
+   
+ 
+
+
+      
   return (
     <Container component="main" maxWidth="sm">
         
@@ -78,7 +80,7 @@ const Login = () => {
         <LockOutlinedIcon />
       </Avatar>
       <Typography component="h1" variant="h5">
-        Sign In
+        Please Enter Your Data  
       </Typography>
       <Box component="form"  method="POST" noValidate  sx={{ mt: 3 }}>
         <Grid container spacing={2}>
@@ -86,12 +88,12 @@ const Login = () => {
             <TextField
               required
               fullWidth
-              name="userId"
-              label="User I'd "
-              type="text"
-              id="userId"
-              autoComplete="userId"
-              value={user.userId} 
+              name="currentpassword"
+              label="Currnnt Password "
+              type="password"
+              id="currentpassword"
+              autoComplete="usecurrentpasswordrId"
+              value={user.currentpassword} 
               onChange={handleInputs}
             />
           </Grid>
@@ -101,52 +103,27 @@ const Login = () => {
             <TextField
               required
               fullWidth
-              name="password"
-              label="Password"
+              name="newpassword"
+              label="New Password"
               type="password"
-              id="password"
-              autoComplete="new-password"
-              value={user.password} 
+              id="newpassword"
+              autoComplete="newpassword"
+              value={user.newpassword} 
               onChange={handleInputs}
             />
           </Grid>
-          <Grid item xs={12} justifyContent={'space-between'}>
-            <Grid item xs={6}>
-            <FormGroup>
-              <FormControlLabel control={<Checkbox/>} label='Remember me'/>
-
-            </FormGroup>
-           </Grid>
-            <Grid item xs={6} >
-            <NavLink to="/forgetpassword" >ForgetPassword</NavLink>
-
-            </Grid>
-            
-          </Grid>
-          
-          
-          
-          
-        </Grid>
+    </Grid>
         <Button
           type="submit"
           fullWidth
           variant="contained"
           color='success'
           sx={{ mt: 3, mb: 2 }}
-          onClick={PostData}
+          onClick={updateData}
         >
-          Sign In
+          Update Password
         </Button>
-        <Grid container justifyContent="center">
-          <Grid item>
-            <Typography variant='body2' >
-                 Don't have an account? 
-                 <NavLink to="/registration" >Sign Up</NavLink>
-            </Typography>
-            
-          </Grid>
-        </Grid>
+        
         
         
       </Box>
@@ -156,4 +133,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default  UpdatePassword 

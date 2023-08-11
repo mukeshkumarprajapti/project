@@ -13,6 +13,8 @@ app.use(cors({
     credentials: true,
     origin:["http://localhost:5173","http://192.168.246.125:5173"]
 }))
+
+
 app.use(cookieParser());
 
 app.use(require('./router/auth'));

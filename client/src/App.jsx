@@ -9,6 +9,7 @@ import ResetPassword from './pages/ResetPassword';
 import Income from './pages/Income';
 import Withdraw from './pages/Withdraw';
 import Logout from './pages/Logout';
+import UpdatePassword from './pages/UpdatePassword';
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
       <Route exact path="/withdraw" element={<Withdraw/>}/>
       <Route exact path="/income" element={<Income/>}/>
       <Route exact path="/logout" element={<Logout/>}/>
+      <Route exact path="/updatepassword" element={<UpdatePassword/>}/>
     </Routes>
     </>
   )

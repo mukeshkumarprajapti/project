@@ -214,7 +214,44 @@ router.post("/:id/:token", async (req, res) => {
   }
 })
 
+// Update password route
 
+
+router.put('/updatepassword', authenticate, async (req, res) => {
+  const { currentpassword, newpassword } = req.body;
+  const userId = req.user._id
+ console.log(userId)
+  
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const passwordMatch = await bcrypt.compare(currentpassword, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Incorrect current password' });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newpassword, 12);
+    
+    const setnewPassword = await User.findByIdAndUpdate({_id:userId}, {password:hashedNewPassword});
+        
+
+       setnewPassword.save();
+
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'An error occurred', error: error.message });
+  }
+});
+
+// for get data
+router.get('/getdata', authenticate , (req, res) => {
+  console.log(`hello my contact`);
+  res.send(req.rootUser);
+});
 
 
 
