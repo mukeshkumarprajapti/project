@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField'; 
@@ -7,60 +7,81 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { Paper } from '@mui/material';
-import { NavLink, useNavigate  } from 'react-router-dom'
+import {  Paper } from '@mui/material';
+import { NavLink, useNavigate, useLocation  } from 'react-router-dom'
+import { toast, ToastContainer  } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Registration = () => {
-
   const navigate = useNavigate();
-
-  
+  const location = useLocation();
 
   const [user, setUser] = useState({
-    referral_id: " ", firstname: " ", lastname: " ", email:" ", phone:" ", password: " ", conform_password:" "
+    firstname:'', email:'', phone:'', lastname:'', password:'', conform_password:'', referral_id:'',
   });
 
-  let name, value;
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const referralCode = queryParams.get('referralcode');
 
-  const handleInputs = (e) => {
-       console.log(e);
-       name = e.target.name;
-       value = e.target.value;
-
-       setUser({...user, [name]:value})
-  }
-
-  const PostData = async (e) => {
-    e.preventDefault();
-
-    const { referral_id, firstname, lastname, email, phone, password, conform_password } = user;
-
-    const res = await fetch("http://localhost:3000/register",{
-      method: "POST",
-      headers: {
-        "Content-type" : "application/json"
-      },
-      body: JSON.stringify({
-        referral_id, firstname, lastname, email, phone, password, conform_password
-      })
-    });
-     
-    const data = await res.json();
-    
-    if(res.status === 422 || !data ) {
-      window.alert("Invalid Registration");
-      console.log("Invalid Registration");
-    } else{
-      window.alert(" Registration successful");
-      console.log(" Registration successful");
-      navigate('/login');
-      
+    if (referralCode) {
+      setUser({ ...user, referral_id: referralCode });
     }
- 
+  }, [location.search]);
 
-  }
+
+
+  let name,  value;
+
+   const handleInputs = (e) => {
+    console.log(e);
+    name = e.target.name;
+    value = e.target.value;
+
+    setUser({...user, [name]:value});
+   }
+
+  
+  
+
+   const PostData = async (e) => {
+    e.preventDefault();
+    try {
+
+      const response = await fetch('http://localhost:3000/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(user)
+      });
+  
+      const data = await response.json();
+  
+      if(response.status === 201){
+        toast.success(data.message, { position: 'top-center' });
+        navigate('/login');
+      }else if (response.status === 400 ) {
+        // Registration failed, handle error messages
+        toast.error(data.message, { position: 'top-center' });
+      } else {
+        // Handle other status codes as needed
+        toast.error('Server error', { position: 'top-center' });
+      }
+      
+    }catch (error) {
+      console.error("Registration error:", error);
+      toast.error('Registration failed', { position: 'top-center' });
+    }
+
+   
+   
+   };
+
+   
   return (
     <Container component="main" maxWidth="sm">
+
+
+    
         
     <Paper
       sx={{
@@ -170,7 +191,6 @@ const Registration = () => {
             />
           </Grid>
           
-          
         </Grid>
         <Button
           type="submit"
@@ -186,7 +206,7 @@ const Registration = () => {
           <Grid item>
             <Typography variant='body2' >
                  Already have an account? 
-                 <NavLink to="/signin" >Sign In</NavLink>
+                 <NavLink to="/login" >Sign In</NavLink>
             </Typography>
             
           </Grid>
@@ -199,6 +219,7 @@ const Registration = () => {
         
       </Box>
     </Paper>
+    <ToastContainer />
 
 </Container>
   )

@@ -47,6 +47,12 @@ const userSchema = new mongoose.Schema({
     verifiTokan: {
         type: String
         
+    },
+    
+    balance:{
+        type: Number,
+        default:0,
+        required:true
     }
     
 })

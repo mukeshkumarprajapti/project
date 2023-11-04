@@ -8,6 +8,8 @@ const authenticate = require('../middleware/authenticate');
 
 require("../db/conn");
 const User = require("../model/userSchema");
+const Transaction = require('../model/TransactionSchema');
+
  const transporter = require("../emailSend/transporter");
 
 //  homepage route
@@ -19,16 +21,17 @@ const User = require("../model/userSchema");
   // registration route
 
  router.post("/register", async (req, res) => {
-    const { referral_id, firstname, lastname, email, phone, password, conform_password  } = req.body;
-  
-    if ( !firstname || !lastname || !email || !phone || !password|| !conform_password ) {
-      return res.status(422).json({ error: "plz filled the field property" });
-    }
-
-    let startingUserId = 1006090;
-    let isUnique = false;
+    
   
     try {
+      const { referral_id, firstname, lastname, email, phone, password, conform_password  } = req.body;
+  
+    if ( !firstname || !lastname || !email || !phone || !password|| !conform_password ) {
+      return res.status(400).json({ message: "plz filled the field property" });
+    }
+ 
+    let startingUserId = 1006090;
+    let isUnique = false;
       while (!isUnique) {
         const existingUser = await User.findOne({ userId: startingUserId }).lean();
   
@@ -41,28 +44,29 @@ const User = require("../model/userSchema");
       const userExist = await User.findOne({ email: email });
   
       if (userExist) {
-        return res.status(422).json({ error: "Email already Exist" });
+        return res.status(400).json({ message: "Email already Exist" });
       } else if (password != conform_password) {
-        return res.status(422).json({ error: "password are not matching" });
+        return res.status(400).json({ message: "password are not matching" });
       } else {
         const user = new User({ referral_id,    userId: startingUserId, firstname, lastname, email, phone,  password, conform_password  });
   
         await user.save();  
 
-        const info = await transporter.sendMail({
-          from:'prajaptimukesh770@gmail.com', 
-          to:email,
-          subject: "sending Email for password reset",
-          text: `your user Id is ${startingUserId}`
-        })
+        // const info = await transporter.sendMail({
+        //   from:'prajaptimukesh770@gmail.com', 
+        //   to:email,
+        //   subject: "sending Email for password reset",
+        //   text: `your user Id is ${startingUserId}`
+        // })
 
-        console.log("Message sent: %s", info.messageId);
+        // console.log("Message sent: %s", info.messageId);
   
-        res.status(201).json({ massage: "user registered successfuly" });
+        res.status(201).json({ message: "user registered successfuly" });
       
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.error('Error during registration:', error);
+    res.status(500).json({ message: "Server error" });
     }
   });
  
@@ -74,7 +78,7 @@ const User = require("../model/userSchema");
       const { userId, password } = req.body;
   
       if (!userId || !password) {
-        return res.status(400).json({ error: "plz filled the data" });
+        return res.status(400).json({ message: "plz filled the data" });
       }
   
       const userLogin = await User.findOne({ userId: userId });
@@ -91,12 +95,12 @@ const User = require("../model/userSchema");
           });
   
         if (!isMatch) {
-          res.status(400).json({ error: "Invalid Credientials" });
+          res.status(400).json({ message: "Invalid Credientials" });
         } else {
-          res.json({ massage: "user Singin Successfully" });
+          res.json({ message: " Login Successfully" });
         }
       } else {
-        res.status(400).json({ error: "Invalid Credientials" });
+        res.status(400).json({ message: "Invalid Credientials" });
       }
     } catch (err) {
       console.log(err);
@@ -251,6 +255,52 @@ router.put('/updatepassword', authenticate, async (req, res) => {
 router.get('/getdata', authenticate , (req, res) => {
   console.log(`hello my contact`);
   res.send(req.rootUser);
+});
+
+
+//for moneytransfer
+
+router.post("/transferMoney",authenticate, async(req, res) => {
+  console.log(req.body)
+  const {  receiverId, amount:amountStr } = req.body;
+  const amount = Number(amountStr);
+  const senderId = req.user.userId
+console.log(senderId, receiverId, amount)
+// return res.status(201).json({ massage: "transaction successfuly" });
+
+
+try {
+  const sender = await User.findOne({userId:senderId});
+  const receiver = await User.findOne({userId:receiverId});
+
+  if (!sender || !receiver) {
+    res.status(400).json({ error: 'User not found' });
+    return;
+  }
+
+  if (sender.balance < amount) {
+    res.status(400).json({ error: 'Insufficient balance' });
+    return;
+  }
+
+  sender.balance -= amount;
+  receiver.balance += amount;
+
+  const transaction = new Transaction({
+    sender: sender._id,
+    receiver: receiver._id,
+    amount,
+  });
+
+  await sender.save();
+  await receiver.save();
+  await transaction.save();
+  res.status(201).json({ massage: "transaction successfuly" });
+  
+} catch (error) {
+  console.log(error);
+  res.status(500).json({ error: 'Server error' });
+}
 });
 
 

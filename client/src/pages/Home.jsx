@@ -1,10 +1,32 @@
 import React, {useEffect, useState } from 'react'
 import Sidenav from '../component/Sidenav'
 import Navbar from '../component/Navbar';
-import { Box, Button, Grid, IconButton, InputAdornment, Paper, TextField, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination, capitalize } from '@mui/material'
-import Typography from '@mui/material/Typography';
+import { Box, Button, Grid, IconButton, InputAdornment, Paper, TextField, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination, Modal,   Typography, 
+ } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
+import { toast, ToastContainer  } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 import { useNavigate  } from 'react-router-dom'
+import MoneyTransfer from '../component/MoneyTransfer';
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '75%',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius:"20px",
+  
+  
+  
+};
+
 
 
 const Home = () => {
@@ -13,6 +35,38 @@ const Home = () => {
   const [userData, setUserData] = useState({});
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [open, setOpen] = React.useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [buttonColor, setButtonColor] = useState('primary');
+  
+
+  
+ 
+
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setIsCopied(true);
+      setButtonColor('success');
+    } catch (error) {
+      console.error('Error copying text:', error);
+      setIsCopied(false);
+      setButtonColor('secondary'); 
+    }
+  
+    setTimeout(() => {
+      setIsCopied(false);
+      setButtonColor('secondary');
+    }, 2000);
+  };
+  
+  
+  
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  
   
 
   const handleChangePage = (event, newPage) => {
@@ -23,6 +77,17 @@ const Home = () => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+  
   
   const emptyRows =
        rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
@@ -39,7 +104,7 @@ const Home = () => {
           });
     
           const data = await res.json();
-          console.log(data);
+          
           setUserData(data);
     
           if(!res.status === 200){
@@ -56,7 +121,9 @@ const Home = () => {
 
        useEffect(() => {
         callAboutPage();
-      }, []);     
+      }, []);   
+      
+      const referralLink = `http://localhost:5173/registration?referralcode=${userData.userId}`
   return (
     <>
     <Navbar/>
@@ -77,7 +144,7 @@ const Home = () => {
                   <Typography variant='h4'>$0</Typography>
                   </Grid>
                   <Grid item xs={6}  >
-                  <Button variant='contained' sx={{float:'right'}}>Transfer fund</Button>
+                  <Button variant='contained' sx={{float:'right'}} onClick={handleOpenDialog}>Transfer fund</Button>
                   </Grid>
                 </Grid>
               </Paper>
@@ -90,7 +157,7 @@ const Home = () => {
                   <Typography variant='h4'>0</Typography>
                   </Grid>
                   <Grid item xs={6}  >
-                  <Button variant='contained' sx={{float:'right'}}>share link</Button>
+                  <Button variant='contained' sx={{float:'right'}} onClick={handleOpen}>share link</Button>
                   </Grid>
                 </Grid>
               </Paper>
@@ -167,6 +234,38 @@ const Home = () => {
 
       </Box>
     </Box>
+    <Modal
+        open={open}
+        onClose={handleClose}
+      >
+        <Box sx={style}>
+          <Typography variant="h5" component="h2">
+          Share the referral link
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={9}>
+            <Typography sx={{ my: 2, background:"gray", padding:'10px', borderRadius:'5px', }} variant="h6" >
+            {referralLink}
+            </Typography>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <Button variant="contained" onClick={handleCopyText} color={buttonColor}
+              sx={{ my: 2,padding:'10px', float:'right', width:'150px', fontWeight: 'bold' }}  >
+                <FileCopyIcon />
+                {isCopied ? 'Copied' : 'Copy'}
+            </Button>
+            
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
+
+      <MoneyTransfer
+      open={openDialog}
+      onClose={handleCloseDialog}
+      />
+      
+      <ToastContainer />
     
     </>
     

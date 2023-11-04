@@ -26,7 +26,7 @@ const Income = () => {
     <Box sx={{ display: 'flex' }}>
     <Sidenav/>
     
-    <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+    <Box component="main" sx={{ flexGrow: 1 }} padding={"100px"}>
         <h2>List of money transfer to your wallet</h2>
         <TableContainer component={Paper}  sx={{maxHeight: "500px"}} >
             <Table aria-label='simple table' stickyHeader>

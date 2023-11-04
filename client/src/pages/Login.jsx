@@ -7,9 +7,11 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { Paper, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
+import { Paper, FormGroup, FormControlLabel, Checkbox, Alert,  Snackbar } from '@mui/material';
 import {  useNavigate  } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
+import { toast, ToastContainer  } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const navigate  = useNavigate();
@@ -28,36 +30,39 @@ const Login = () => {
     value = e.target.value;
 
     setUser({...user, [name]:value});
-   }
+   } 
    
    const PostData = async (e) => {
     e.preventDefault();
 
-    const { userId, password} = user;
+    try {
     
-    const res = await fetch('http://localhost:3000/login', {
+    const response = await fetch('http://localhost:3000/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        userId, password
-      }),
+      body: JSON.stringify(user),
       credentials: "include"
 
     });
 
-    const data = await res.json();
+    const data = await response.json();
 
 
 
-    if (res.status === 400 || !data ) {
-      window.alert("Invalid Credentials");
-      console.log("Invalid Credentials");
-    } else{
+    if(response.status === 400){
+      
+      toast.error(data.message, { position: 'top-center' });
+    }else{
 
-      window.alert("login successfull");
-        console.log("login done");
-        navigate('/')
+      toast.success(data.message, { position: 'top-center' });
+      navigate('/');
     }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error('Login failed', { position: 'top-center' });
+    }
+
+    
    
    }
   return (
@@ -151,7 +156,6 @@ const Login = () => {
         
       </Box>
     </Paper>
-
 </Container>
   )
 }
