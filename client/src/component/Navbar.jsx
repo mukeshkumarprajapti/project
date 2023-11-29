@@ -40,6 +40,40 @@ export default function Navbar() {
    
     const updateOpen = useAppStore((state) => state.updateOpen);
     const dopen = useAppStore((state) => state.dopen);
+
+    const [useData, setUserData] = React.useState({});
+
+  const callContactPage = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/getdata',{
+        method: 'GET',
+        headers: {
+            "Content-Type" : 'application/json'
+          },
+          credentials: "include"
+      });
+
+      const data = await res.json();
+      console.log(data);
+      setUserData(data);
+
+      if(!res.status === 200){
+        const error = new Error(res.error);
+        throw error;
+      }
+
+
+    } catch(err) {
+      console.log(err);
+      setUserData(data);
+    
+    }
+  }
+
+  React.useEffect(() => {
+    callContactPage();
+  }, []);
+ 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="fixed" color='success'>
@@ -54,8 +88,8 @@ export default function Navbar() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            News
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, textTransform:" capitalize"}}>
+            {useData.userId} ({useData.firstname} {useData.lastname})
           </Typography>
           {auth && (
             <div >

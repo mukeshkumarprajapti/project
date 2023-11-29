@@ -4,19 +4,15 @@ import { Dialog, Input,
   DialogContent,
   DialogActions,
   FormControl,
-  InputLabel, Button
+  InputLabel, Button, InputAdornment
  } from '@mui/material'
  import {  useNavigate  } from 'react-router-dom';
+ import { toast, ToastContainer  } from 'react-toastify';
+ import 'react-toastify/dist/ReactToastify.css';
 
- 
+const MoneyTransfer = ({ open, onClose}) => {
 
-const MoneyTransfer = ({ open, onClose, onConfirm }) => {
-
-  const navigate  = useNavigate();
-
-
-
-  const [user, setUser] = useState({
+ const [user, setUser] = useState({
     receiverId:'', amount:'' 
    });
 
@@ -30,7 +26,7 @@ const MoneyTransfer = ({ open, onClose, onConfirm }) => {
     setUser({...user, [name]:value});
    } 
    
-   const PostData = async (e) => {
+   const sandFund = async (e) => {
     e.preventDefault();
 
     try {
@@ -47,26 +43,27 @@ const MoneyTransfer = ({ open, onClose, onConfirm }) => {
 
 
 
-    if(response.status === 400){
+    if(response.status === 201){
+      toast.success(data.message, { position: 'top-center' });
+      onClose();
+      
+    } else {
       
       toast.error(data.message, { position: 'top-center' });
-    }else{
-
-      toast.success(data.message, { position: 'top-center' });
-      navigate('/');
     }
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error('Login failed', { position: 'top-center' });
+      console.error(error);
+      toast.error('Server error', { position: 'top-center' });
     }
 
   }
   return (
     <>
-    <Dialog open={open} onClose={onClose} >
+    <Dialog open={open} onClose={onClose}  >
         <DialogTitle>Transfer Fund</DialogTitle>
+        
         <DialogContent >
-        <FormControl fullWidth sx={{marginTop:'15px'}}>
+        <FormControl fullWidth sx={{marginTop:'15px'}} variant="standard">
             <InputLabel htmlFor="account-number" >userId</InputLabel>
             <Input
               id="receiverId"
@@ -79,29 +76,31 @@ const MoneyTransfer = ({ open, onClose, onConfirm }) => {
               
             />
           </FormControl>
-          <FormControl fullWidth sx={{marginTop:'15px'}}>
-            <InputLabel htmlFor="amount">Amount</InputLabel>
-            <Input
-              id="amount"
-              type="number"
-              
-              autoComplete="off"
-              name="amount"
-              value={user.amount} 
-              onChange={handleInputs}
-              
-            />
-          </FormControl>
+          
+          <FormControl fullWidth sx={{ marginTop:'15px' }} variant="standard">
+          <InputLabel htmlFor="standard-adornment-amount">Amount</InputLabel>
+          <Input
+            id="amount"
+            type="input"
+            
+            autoComplete="off"
+            name="amount"
+            value={user.amount} 
+            onChange={handleInputs}
+            startAdornment={<InputAdornment position="start">$</InputAdornment>}
+          />
+        </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="primary">
             Cancel
           </Button>
-          <Button color="primary" onClick={PostData}>
+          <Button color="primary" onClick={sandFund}>
             Transfer
           </Button>
         </DialogActions>
       </Dialog>
+      <ToastContainer />
       </>
   )
 }

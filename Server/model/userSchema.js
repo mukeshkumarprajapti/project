@@ -53,6 +53,12 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default:0,
         required:true
+    },
+
+    number_of_refficients: {
+        type: Number,
+        default: 0
+
     }
     
 })

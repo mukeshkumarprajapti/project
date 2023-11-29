@@ -10,10 +10,25 @@ import Container from '@mui/material/Container';
 import { Paper, FormGroup, FormControlLabel, Checkbox, Alert,  Snackbar } from '@mui/material';
 import {  useNavigate  } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import { toast, ToastContainer  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import axios from '../axios';
 const Login = () => {
+
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
   const navigate  = useNavigate();
 
 
@@ -37,15 +52,15 @@ const Login = () => {
 
     try {
     
-    const response = await fetch('http://localhost:3000/login', {
-      method: 'POST',
+    const response = await axios.post('/login',user, {
+      
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(user),
-      credentials: "include"
+      
+      withCredentials: true,
 
     });
 
-    const data = await response.json();
+    const data =  response.data;
 
 
 
@@ -103,17 +118,34 @@ const Login = () => {
           
           
           <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={user.password} 
-              onChange={handleInputs}
-            />
+            
+            <FormControl fullWidth required  variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-password"> Password</InputLabel>
+          <OutlinedInput
+            
+            
+            name="password"
+            
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            autoComplete="off"
+            value={user.password} 
+            onChange={handleInputs}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={handleClickShowPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                >
+                  {showPassword ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
+              </InputAdornment>
+            }
+            label="Password"
+          />
+        </FormControl>
           </Grid>
           <Grid item xs={12} justifyContent={'space-between'}>
             <Grid item xs={6}>

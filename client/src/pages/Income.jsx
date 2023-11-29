@@ -1,12 +1,13 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Box, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, TablePagination } from '@mui/material';
 import Sidenav from '../component/Sidenav'
 import Navbar from '../component/Navbar';
+import axios from '../axios';
 
 const Income = () => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
+  const [user, setUser] = React.useState([])
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -15,6 +16,21 @@ const Income = () => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+
+  const GetData = async() => {
+    try {
+      const res = await axios.get("/getdata");
+      setUser(res.data);
+
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    GetData();
+  }, []);
   
   const emptyRows =
        rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage)
@@ -39,16 +55,15 @@ const Income = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows
-                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) =>(
+                {user
+                .map((user) =>(
                   <TableRow hover
-                   key={row.id}
+                   key={user._id}
                    sx={{'&:last-child td, &:last-child th': {border: 0}}}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell>{row.full_name}</TableCell>
-                    <TableCell align='center'>{row.email}</TableCell>
-                    <TableCell>{row.date}</TableCell>
+                    <TableCell>{user.userId}</TableCell>
+                    <TableCell>{user.firstname}</TableCell>
+                    <TableCell align='center'>{user.email}</TableCell>
+                    <TableCell>{user.phone}</TableCell>
                    </TableRow>
                 ))}
                 {emptyRows > 0 && (

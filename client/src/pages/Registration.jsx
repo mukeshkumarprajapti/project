@@ -8,11 +8,27 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {  Paper } from '@mui/material';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
 import { NavLink, useNavigate, useLocation  } from 'react-router-dom'
 import { toast, ToastContainer  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Registration = () => {
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
+
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -112,6 +128,9 @@ const Registration = () => {
               autoComplete="off"
               value={user.referral_id}
               onChange={handleInputs}
+              InputProps={{
+                readOnly: true,
+              }}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -165,30 +184,62 @@ const Registration = () => {
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="password"
+          <FormControl fullWidth required  variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+          <OutlinedInput
+            
+            
+            name="password"
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               id="password"
               autoComplete="off"
               value={user.password}
               onChange={handleInputs}
-            />
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={handleClickShowPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                >
+                  {showPassword ? <Visibility/> : <VisibilityOff  />}
+                </IconButton>
+              </InputAdornment>
+            }
+          />
+        </FormControl>
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="conform_password"
-              label="Conform Password"
-              type="password"
-              id="conform_password"
-              autoComplete="off"
-              value={user.conform_password}
-              onChange={handleInputs}
-            />
+          <FormControl fullWidth required  variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-password">Confirm Password</InputLabel>
+          <OutlinedInput
+            
+            
+            name="conform_password"
+            label=""
+            type={showPassword ? 'text' : 'password'}
+            id="conform_password"
+            autoComplete="off"
+            value={user.conform_password}
+            onChange={handleInputs}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={handleClickShowPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                >
+                  {showPassword ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
+              </InputAdornment>
+            }
+            
+          />
+        </FormControl>
+             
           </Grid>
           
         </Grid>

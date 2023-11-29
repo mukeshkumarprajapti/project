@@ -13,6 +13,7 @@ import UpdatePassword from './pages/UpdatePassword';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MoneyTransfer from './component/MoneyTransfer';
+import Transaction from './pages/Transaction';
 
 
 
@@ -34,7 +35,7 @@ const App = () => {
       <Route exact path="/income" element={<Income/>}/>
       <Route exact path="/logout" element={<Logout/>}/>
       <Route exact path="/updatepassword" element={<UpdatePassword/>}/>
-      
+      <Route exact path="/transation" element={<Transaction/>}/>
        
     </Routes>
     

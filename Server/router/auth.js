@@ -12,6 +12,9 @@ const Transaction = require('../model/TransactionSchema');
 
  const transporter = require("../emailSend/transporter");
 
+ const stripe = require("stripe")(process.env.STRIPE_KEY);
+ const uuid = require("uuidV4");
+
 //  homepage route
  router.get('/', authenticate , (req, res) => {
   console.log(`hello my about`);
@@ -42,7 +45,8 @@ const Transaction = require('../model/TransactionSchema');
         }
       }
       const userExist = await User.findOne({ email: email });
-  
+      const referredBy = await User.findOne({ userId: referral_id})
+       
       if (userExist) {
         return res.status(400).json({ message: "Email already Exist" });
       } else if (password != conform_password) {
@@ -50,6 +54,12 @@ const Transaction = require('../model/TransactionSchema');
       } else {
         const user = new User({ referral_id,    userId: startingUserId, firstname, lastname, email, phone,  password, conform_password  });
   
+        referredBy.balance += 20;
+        referredBy.number_of_refficients += 1;
+        user.balance += 30;
+
+
+        await referredBy.save();
         await user.save();  
 
         // const info = await transporter.sendMail({
@@ -66,7 +76,7 @@ const Transaction = require('../model/TransactionSchema');
       }
     } catch (error) {
       console.error('Error during registration:', error);
-    res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error" });
     }
   });
  
@@ -251,17 +261,38 @@ router.put('/updatepassword', authenticate, async (req, res) => {
   }
 });
 
-// for get data
+// for get user data
 router.get('/getdata', authenticate , (req, res) => {
   console.log(`hello my contact`);
   res.send(req.rootUser);
 });
 
+// for get all users data
+
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+   
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/transaction', async (req, res) => {
+  try {
+    const users = await Transaction.find();
+    res.json(users);
+   console.log(users)
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 //for moneytransfer
 
 router.post("/transferMoney",authenticate, async(req, res) => {
-  console.log(req.body)
+  
   const {  receiverId, amount:amountStr } = req.body;
   const amount = Number(amountStr);
   const senderId = req.user.userId
@@ -274,12 +305,18 @@ try {
   const receiver = await User.findOne({userId:receiverId});
 
   if (!sender || !receiver) {
-    res.status(400).json({ error: 'User not found' });
+    res.status(400).json({ message: 'User not found' });
+    return;
+  }
+  
+
+   if (sender.balance < amount) {
+    res.status(400).json({ message: 'Insufficient balance' });
     return;
   }
 
-  if (sender.balance < amount) {
-    res.status(400).json({ error: 'Insufficient balance' });
+  if (sender.userId == receiver.userId) {
+    res.status(400).json({ message:'sender and receiver are same'})
     return;
   }
 
@@ -289,22 +326,54 @@ try {
   const transaction = new Transaction({
     sender: sender._id,
     receiver: receiver._id,
+    senderUserId: sender.userId, // Store sender's userId
+    receiverUserId: receiver.userId,
     amount,
   });
 
   await sender.save();
   await receiver.save();
   await transaction.save();
-  res.status(201).json({ massage: "transaction successfuly" });
+  res.status(201).json({ message: "transaction successfuly" });
   
 } catch (error) {
   console.log(error);
-  res.status(500).json({ error: 'Server error' });
+  res.status(500).json({ message: 'Server error' });
 }
 });
 
 
+// for add money
 
+router.post("/AddMoney", async(req, res) => {
+
+  try {
+    const {token, amount} = req.body;
+
+    const customer = await stripe.customer.create({
+      email: token.email,
+      source: token.id
+    });
+
+    //create a charge
+
+    const charge = await stripe.charge.create({
+      amount:amount,
+      currency:"usd",
+      customer: customer.id,
+      receipt_email: token.email,
+      description:" Deposite to Sheywallet"
+    },
+    {
+      idempotencyKey: uuid()
+    })
+    
+    res.status(200).json({ success: true, message: 'Payment successful' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+})
   
  
 
